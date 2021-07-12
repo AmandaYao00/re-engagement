@@ -6,7 +6,6 @@ import environment
 import agent
 import sys
 import pygame as pg
-import numpy as np
 import pandas as pd
 
 class Ui_MainWindow(object):
@@ -124,27 +123,21 @@ class Ui_MainWindow(object):
         self.textEdit.setDisabled(True)
         self.label.setText("WPM:-")
         self.label_2.setText("IPM:-")
-        np.savetxt("reward.csv", np.array(self.reward_record), delimiter=",")
-        np.savetxt("human_rward.csv", np.array(self.human_reward_record), delimiter=",")
+
 
     def recordInputInfo(self):
-        # Calculate time interval
-        time_interval = (time.time() - self.startTime) / 60
-
         # Just keep characters from textEdit
         text = self.textEdit.toPlainText()
         temp = filter(str.isalpha, text)
-        new_text = ''.join(list(temp))
+        new_text = ''.join(list(temp))      # total amount of text
 
         # Suppose after sleep(1), these two lists will append the number of 1,2,3,4,5 seconds.
         self.allInputNum.append(self.inputNum)
         self.validAlphaNum.append(len(new_text))
 
-        timeIs = len(self.allInputNum)
-
+        timeIs = len(self.allInputNum) #Number of seconds that program has been running
         wpm, ipm = self.getWPMandIPM(timeIs, 5)
 
-        # test.csv github
         self.label.setText("WPM:" + str(wpm))
         self.label_2.setText("IPM:" + str(ipm))
 
@@ -154,7 +147,10 @@ class Ui_MainWindow(object):
         self.log.append((timeIs, wpm, ipm))
 
     def getWPMandIPM(self, time, interval):
-        """Given time t, and time interval, we calculate the wpm and ipm"""
+        """Given time t, and time interval, we calculate the wpm and ipm.
+        WPM (characters per minute) is calculated by taking the number of characters typed in the last
+        ~interval~ seconds and multiplying it by the corresponding constant."""
+
         if time <= interval:
             wpm = round(self.validAlphaNum[time - 1] / (time / 60))
             ipm = round(self.allInputNum[time - 1] / (time / 60))
@@ -278,7 +274,7 @@ if __name__ == "__main__":
     ui.setupUi(MainWindow)
     MainWindow.show()
     status = app.exec_()
-    pd.DataFrame(data=ui.log, columns=['time', 'wpm', 'ipm']).to_csv('test.csv.csv', index=False)
+    pd.DataFrame(data=ui.log, columns=['time', 'wpm', 'ipm']).to_csv('test.csv', index=False)
     sys.exit(status)
 
 
