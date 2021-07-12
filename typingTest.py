@@ -1,7 +1,5 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import *
-from PyQt5.QtGui import *
-from PyQt5.QtWidgets import *
 import time
 import functools
 import environment
@@ -10,12 +8,9 @@ import sys
 import pygame as pg
 import numpy as np
 
-
-# %matplotlib inline
-
-
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
+
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(692, 477)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
@@ -193,7 +188,6 @@ class Ui_MainWindow(object):
         self.pushButton_5.setStyleSheet("border:none; background-color: gray")
 
     def getCurrentLocation(self):
-        new_state = None
         if self.wpm <= 2:
             new_state = (0, 0)
         elif self.wpm > 2 and self.wpm <= 4:
@@ -208,8 +202,7 @@ class Ui_MainWindow(object):
         return new_state
 
     def getWPMandIPM(self, time, interval):
-        """Given time t, and time interval, we calculate the wpm and ipm
-        """
+        """Given time t, and time interval, we calculate the wpm and ipm"""
         if time <= interval:
             wpm = round(self.validAlphaNum[time - 1] / (time / 60))
             ipm = round(self.allInputNum[time - 1] / (time / 60))
