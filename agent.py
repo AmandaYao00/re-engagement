@@ -35,7 +35,7 @@ class Q_Agent():
 
     def learn(self, old_state, reward, human_reward, new_state, action):
         """Updates the Q-value table using Q-learning"""
-        print(new_state)
+        # print(new_state)
         q_values_of_state = self.q_table[new_state]
         max_q_value_in_new_state = max(q_values_of_state.values())
         current_q_value = self.q_table[old_state][action]

@@ -7,6 +7,7 @@ import agent
 import sys
 import pygame as pg
 import numpy as np
+import pandas as pd
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -96,6 +97,8 @@ class Ui_MainWindow(object):
         self.human_reward_record = []
         self.humanRewardFeedback = 0
 
+        self.log = []
+
     def startTest(self):
         self.allInputNum = []
         self.validAlphaNum = []
@@ -132,21 +135,34 @@ class Ui_MainWindow(object):
         text = self.textEdit.toPlainText()
         temp = filter(str.isalpha, text)
         new_text = ''.join(list(temp))
-        print(new_text)
 
         # Suppose after sleep(1), these two lists will append the number of 1,2,3,4,5 seconds.
         self.allInputNum.append(self.inputNum)
         self.validAlphaNum.append(len(new_text))
 
         timeIs = len(self.allInputNum)
+
         wpm, ipm = self.getWPMandIPM(timeIs, 5)
 
-        # test github
+        # test.csv github
         self.label.setText("WPM:" + str(wpm))
         self.label_2.setText("IPM:" + str(ipm))
 
         self.wpm = wpm
         self.ipm = ipm
+
+        self.log.append((timeIs, wpm, ipm))
+
+    def getWPMandIPM(self, time, interval):
+        """Given time t, and time interval, we calculate the wpm and ipm"""
+        if time <= interval:
+            wpm = round(self.validAlphaNum[time - 1] / (time / 60))
+            ipm = round(self.allInputNum[time - 1] / (time / 60))
+        else:
+            wpm = round((self.validAlphaNum[time - 1] - self.validAlphaNum[time - 1 - interval]) / (interval / 60))
+            ipm = round((self.allInputNum[time - 1] - self.allInputNum[time - 1 - interval]) / (interval / 60))
+
+        return wpm, ipm
 
     def updateInfo(self, environment, agent):
         # get old state
@@ -160,14 +176,13 @@ class Ui_MainWindow(object):
 
         reward = self.environment.make_step(self.action)
 
-        print(self.pushButton_3.isEnabled())
         if self.pushButton_3.isEnabled():
             self.humanRewardFeedback = 0.2
 
         self.activateButton()
 
         self.reward_record.append(reward)
-        print(self.humanRewardFeedback)
+
         self.human_reward_record.append(self.humanRewardFeedback)
         agent.learn(old_state, reward, self.humanRewardFeedback, self.environment.current_location, old_action)
 
@@ -200,17 +215,6 @@ class Ui_MainWindow(object):
             new_state = (0, 4)
 
         return new_state
-
-    def getWPMandIPM(self, time, interval):
-        """Given time t, and time interval, we calculate the wpm and ipm"""
-        if time <= interval:
-            wpm = round(self.validAlphaNum[time - 1] / (time / 60))
-            ipm = round(self.allInputNum[time - 1] / (time / 60))
-        else:
-            wpm = round((self.validAlphaNum[time - 1] - self.validAlphaNum[time - 1 - interval]) / (interval / 60))
-            ipm = round((self.allInputNum[time - 1] - self.allInputNum[time - 1 - interval]) / (interval / 60))
-
-        return wpm, ipm
 
     def textEdit_callback(self):
         self.inputNum += 1
@@ -254,7 +258,6 @@ class RecordWorkThread(QThread):
             time.sleep(1)
             self.recordTrigger.emit(str(1))
 
-
 # For updating Qagent per once per 30 seconds
 class QLearningWorkThread(QThread):
     qlearningTrigger = pyqtSignal(str)
@@ -274,7 +277,9 @@ if __name__ == "__main__":
     ui = Ui_MainWindow()
     ui.setupUi(MainWindow)
     MainWindow.show()
-    sys.exit(app.exec_())
+    status = app.exec_()
+    pd.DataFrame(data=ui.log, columns=['time', 'wpm', 'ipm']).to_csv('test.csv.csv', index=False)
+    sys.exit(status)
 
 
 
