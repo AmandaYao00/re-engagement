@@ -4,13 +4,23 @@ import time
 import functools
 import environment
 import agent
-import sys
 import pygame as pg
 import pandas as pd
+import sys
 
+""" Sets up UI Window, starts the typing test, calculates WPM and IPM. """
 class Ui_MainWindow(object):
-    def setupUi(self, MainWindow):
 
+    """ @param hasStarted: True if 'Start' button has been pushed. """
+    hasStarted = False
+
+    """   
+    Sets up Typing UI with widgets and fonts.
+    @param self: Ui_MainWindow instance.
+    @param MainWindow: MainWindow object.
+    @return: None.   
+    """
+    def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(692, 477)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
@@ -31,31 +41,31 @@ class Ui_MainWindow(object):
         self.pushButton = QtWidgets.QPushButton(self.centralwidget)
         self.pushButton.setObjectName("pushButton")
         self.horizontalLayout.addWidget(self.pushButton)
-        self.pushButton_2 = QtWidgets.QPushButton(self.centralwidget)
-        self.pushButton_2.setObjectName("pushButton_2")
-        self.horizontalLayout.addWidget(self.pushButton_2)
+        # self.pushButton_2 = QtWidgets.QPushButton(self.centralwidget)
+        # self.pushButton_2.setObjectName("pushButton_2")
+        # self.horizontalLayout.addWidget(self.pushButton_2)
         spacerItem = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
         self.horizontalLayout.addItem(spacerItem)
-        self.pushButton_3 = QtWidgets.QPushButton(self.centralwidget)
-        self.pushButton_3.setStyleSheet("border:none; background-color: gray")
-        self.pushButton_3.setEnabled(False)
-        self.pushButton_3.setObjectName("pushButton_3")
-        self.horizontalLayout.addWidget(self.pushButton_3)
-        self.pushButton_4 = QtWidgets.QPushButton(self.centralwidget)
-        self.pushButton_4.setStyleSheet("border:none; background-color: gray")
-        self.pushButton_4.setEnabled(False)
-        self.pushButton_4.setObjectName("pushButton_4")
-        self.horizontalLayout.addWidget(self.pushButton_4)
-        self.pushButton_5 = QtWidgets.QPushButton(self.centralwidget)
+        # self.pushButton_3 = QtWidgets.QPushButton(self.centralwidget)
+        # self.pushButton_3.setStyleSheet("border:none; background-color: gray")
+        # self.pushButton_3.setEnabled(False)
+        # self.pushButton_3.setObjectName("pushButton_3")
+        # self.horizontalLayout.addWidget(self.pushButton_3)
+        # self.pushButton_4 = QtWidgets.QPushButton(self.centralwidget)
+        # self.pushButton_4.setStyleSheet("border:none; background-color: gray")
+        # self.pushButton_4.setEnabled(False)
+        # self.pushButton_4.setObjectName("pushButton_4")
+        # self.horizontalLayout.addWidget(self.pushButton_4)
+        #self.pushButton_5 = QtWidgets.QPushButton(self.centralwidget)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.pushButton_5.sizePolicy().hasHeightForWidth())
-        self.pushButton_5.setSizePolicy(sizePolicy)
-        self.pushButton_5.setStyleSheet("border:none; background-color: gray")
-        self.pushButton_5.setEnabled(False)
-        self.pushButton_5.setObjectName("pushButton_5")
-        self.horizontalLayout.addWidget(self.pushButton_5)
+        # sizePolicy.setHeightForWidth(self.pushButton_5.sizePolicy().hasHeightForWidth())
+        # self.pushButton_5.setSizePolicy(sizePolicy)
+        # self.pushButton_5.setStyleSheet("border:none; background-color: gray")
+        # self.pushButton_5.setEnabled(False)
+        # self.pushButton_5.setObjectName("pushButton_5")
+        # self.horizontalLayout.addWidget(self.pushButton_5)
         self.label = QtWidgets.QLabel(self.centralwidget)
         self.label.setObjectName("label")
         self.horizontalLayout.addWidget(self.label)
@@ -68,13 +78,13 @@ class Ui_MainWindow(object):
         self.statusbar = QtWidgets.QStatusBar(MainWindow)
         self.statusbar.setObjectName("statusbar")
         MainWindow.setStatusBar(self.statusbar)
-
         self.retranslateUi(MainWindow)
         self.pushButton.clicked.connect(self.startTest)
-        self.pushButton_2.clicked.connect(self.resetTest)
-        self.pushButton_3.clicked.connect(self.getNegativeReward)
-        self.pushButton_4.clicked.connect(self.getNormalReward)
-        self.pushButton_5.clicked.connect(self.getPositiveReward)
+
+        # self.pushButton_2.clicked.connect(self.resetTest)
+        # self.pushButton_3.clicked.connect(self.getNegativeReward)
+        # self.pushButton_4.clicked.connect(self.getNormalReward)
+        # self.pushButton_5.clicked.connect(self.getPositiveReward)
 
         self.textEdit.textChanged.connect(self.textEdit_callback)
         self.textEdit.setDisabled(True)
@@ -98,33 +108,40 @@ class Ui_MainWindow(object):
 
         self.log = []
 
+    """ Starts the typing test if not already started. """
     def startTest(self):
-        self.allInputNum = []
-        self.validAlphaNum = []
-        self.textEdit.setPlaceholderText("")
-        self.textEdit.setDisabled(False)
-        self.recordWork.start()
-        self.qlearningWork.start()
-        self.environment = environment.GridWorld()
-        self.agentQ = agent.Q_Agent(self.environment)
-        self.update_call = functools.partial(self.updateInfo, environment=self.environment, agent=self.agentQ)
-        pg.mixer.init()
-        self.recordWork.recordTrigger.connect(self.recordInputInfo)
-        self.qlearningWork.qlearningTrigger.connect(self.update_call)
 
-        # Start timer
-        self.startTime = time.time()
+        if not self.hasStarted:
 
-    def resetTest(self):
-        self.allInputNum = []
-        self.validAlphaNum = []
-        self.inputNum = 0
-        self.textEdit.setPlainText("")
-        self.textEdit.setDisabled(True)
-        self.label.setText("WPM:-")
-        self.label_2.setText("IPM:-")
+            """Keeps a second by second record of the Input Num"""
+            self.allInputNum = []
+            "Keeps a second by second record of the Total Number of Words Typed. "
+            self.validAlphaNum = []
+            self.textEdit.setPlaceholderText("")
+            self.textEdit.setDisabled(False)
+            self.recordWork.start()
+            self.qlearningWork.start()
+            self.environment = environment.GridWorld()
+            self.agentQ = agent.Q_Agent(self.environment)
+            self.update_call = functools.partial(self.updateInfo, environment=self.environment, agent=self.agentQ)
+            pg.mixer.init()
+            self.recordWork.recordTrigger.connect(self.recordInputInfo)
+            self.qlearningWork.qlearningTrigger.connect(self.update_call)
 
+            # Start timer
+            self.startTime = time.time()
+            self.hasStarted = True
 
+    # def resetTest(self):
+    #     self.allInputNum = []
+    #     self.validAlphaNum = []
+    #     self.inputNum = 0
+    #     self.textEdit.setPlainText("")
+    #     self.textEdit.setDisabled(True)
+    #     self.label.setText("WPM:-")
+    #     self.label_2.setText("IPM:-")
+
+    """ Records WPM and IPM and adds them to the CSV. Displays WPM and IPM on screen. """
     def recordInputInfo(self):
         # Just keep characters from textEdit
         text = self.textEdit.toPlainText()
@@ -135,7 +152,7 @@ class Ui_MainWindow(object):
         self.allInputNum.append(self.inputNum)
         self.validAlphaNum.append(len(new_text))
 
-        timeIs = len(self.allInputNum) #Number of seconds that program has been running
+        timeIs = len(self.allInputNum)          # Number of seconds that program has been running.
         wpm, ipm = self.getWPMandIPM(timeIs, 5)
 
         self.label.setText("WPM:" + str(wpm))
@@ -146,13 +163,13 @@ class Ui_MainWindow(object):
 
         self.log.append((timeIs, wpm, ipm))
 
+    """Given time t, and time interval, we calculate the wpm and ipm.
+            WPM (characters per minute) is calculated by taking the number of characters typed in the last
+            ~interval~ seconds and multiplying it by the corresponding constant."""
     def getWPMandIPM(self, time, interval):
-        """Given time t, and time interval, we calculate the wpm and ipm.
-        WPM (characters per minute) is calculated by taking the number of characters typed in the last
-        ~interval~ seconds and multiplying it by the corresponding constant."""
 
         if time <= interval:
-            wpm = round(self.validAlphaNum[time - 1] / (time / 60))
+            wpm = round((self.validAlphaNum[time - 1] - 183) / (time / 60))
             ipm = round(self.allInputNum[time - 1] / (time / 60))
         else:
             wpm = round((self.validAlphaNum[time - 1] - self.validAlphaNum[time - 1 - interval]) / (interval / 60))
@@ -160,44 +177,38 @@ class Ui_MainWindow(object):
 
         return wpm, ipm
 
+    """ Not relevant for typing test. """
     def updateInfo(self, environment, agent):
         # get old state
         old_state = self.environment.current_location
-
         old_action = self.action
-
         self.environment.current_location = self.getCurrentLocation()
-
         self.action = agent.choose_action(self.environment.actions)
-
         reward = self.environment.make_step(self.action)
-
-        if self.pushButton_3.isEnabled():
-            self.humanRewardFeedback = 0.2
-
-        self.activateButton()
-
+        # if self.pushButton_3.isEnabled():
+            # self.humanRewardFeedback = 0.2
+        # self.activateButton()
         self.reward_record.append(reward)
-
         self.human_reward_record.append(self.humanRewardFeedback)
         agent.learn(old_state, reward, self.humanRewardFeedback, self.environment.current_location, old_action)
 
-    def activateButton(self):
-        self.pushButton_3.setEnabled(True)
-        self.pushButton_4.setEnabled(True)
-        self.pushButton_5.setEnabled(True)
-        self.pushButton_3.setStyleSheet("border:none; background-color: red")
-        self.pushButton_4.setStyleSheet("border:none; background-color: yellow")
-        self.pushButton_5.setStyleSheet("border:none; background-color: green")
+    # def activateButton(self):
+        # self.pushButton_3.setEnabled(True)
+        # self.pushButton_4.setEnabled(True)
+        # self.pushButton_5.setEnabled(True)
+        # self.pushButton_3.setStyleSheet("border:none; background-color: red")
+        # self.pushButton_4.setStyleSheet("border:none; background-color: yellow")
+        # self.pushButton_5.setStyleSheet("border:none; background-color: green")
 
-    def disableButton(self):
-        self.pushButton_3.setEnabled(False)
-        self.pushButton_4.setEnabled(False)
-        self.pushButton_5.setEnabled(False)
-        self.pushButton_3.setStyleSheet("border:none; background-color: gray")
-        self.pushButton_4.setStyleSheet("border:none; background-color: gray")
-        self.pushButton_5.setStyleSheet("border:none; background-color: gray")
+    # def disableButton(self):
+        # self.pushButton_3.setEnabled(False)
+        # self.pushButton_4.setEnabled(False)
+        # self.pushButton_5.setEnabled(False)
+        # self.pushButton_3.setStyleSheet("border:none; background-color: gray")
+        # self.pushButton_4.setStyleSheet("border:none; background-color: gray")
+        # self.pushButton_5.setStyleSheet("border:none; background-color: gray")
 
+    """ Not relevant for typing test. """
     def getCurrentLocation(self):
         if self.wpm <= 2:
             new_state = (0, 0)
@@ -227,20 +238,21 @@ class Ui_MainWindow(object):
         self.humanRewardFeedback = 0.5
         self.disableButton()
 
+    # UI Window Text
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "Typing"))
         self.pushButton.setText(_translate("MainWindow", "Start"))
-        self.pushButton_2.setText(_translate("MainWindow", "End"))
+        # self.pushButton_2.setText(_translate("MainWindow", "End"))
 
-        self.pushButton_3.setText(_translate("MainWindow", ""))
-        self.pushButton_4.setText(_translate("MainWindow", ""))
-        self.pushButton_5.setText(_translate("MainWindow", ""))
+        # self.pushButton_3.setText(_translate("MainWindow", ""))
+        # self.pushButton_4.setText(_translate("MainWindow", ""))
+        # self.pushButton_5.setText(_translate("MainWindow", ""))
 
         self.label.setText(_translate("MainWindow", "WPM:-"))
         self.label_2.setText(_translate("MainWindow", "IPM:-"))
-        self.textEdit.setPlaceholderText('Click Start Button.')
-
+        # self.textEdit.setPlaceholderText('Click Start Button.')
+        self.textEdit.setText("It’s college application time! Here were some of the Stanford Essay Prompts from last year.  Choose one and write away! \n \nA. What is the most significant challenge that society faces today? \nB.How did you spend your last two summers?\n")
 
 # For recording input info once per second
 class RecordWorkThread(QThread):
@@ -266,7 +278,7 @@ class QLearningWorkThread(QThread):
             time.sleep(5)
             self.qlearningTrigger.emit(str(1))
 
-
+""" Run this code to run the typing test."""
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
     MainWindow = QtWidgets.QMainWindow()
@@ -276,6 +288,5 @@ if __name__ == "__main__":
     status = app.exec_()
     pd.DataFrame(data=ui.log, columns=['time', 'wpm', 'ipm']).to_csv('test.csv', index=False)
     sys.exit(status)
-
 
 
